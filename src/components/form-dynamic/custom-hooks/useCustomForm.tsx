@@ -7,17 +7,23 @@ import { selectDialogEdit } from "@/core/global-redux/reducers/dialog.reducer";
 export const useCustomForm = (): [
     IFormService['formDynamic'], 
     IFormService['setFormDynamic'],
+    IFormService['formValid'],
     IFormService['buildForm'],
     IFormService['handleChange'],
     IFormService['handleTouch'],
+    IFormService['markAllTouch'],
     IFormService['getValues']
 ] => {
     const [ formDynamic, setFormDynamic ] = useState<IFormDynamic>({});
+    const [ formValid, setFormValid ] = useState(true);
     const edit = useSelector(selectDialogEdit);
 
     const buildForm = (fields: IFieldFormDynamic[]): IFormDynamic => {
         let newFormDinamic: IFormDynamic = {};
         fields.forEach(field => {
+            if (field.validators && field.validators.length > 0) {
+                setFormValid(false)
+            }
             const newFieldTemp = {
                 [field.name]: {
                     value: field.value || '',
@@ -30,7 +36,7 @@ export const useCustomForm = (): [
             }
             newFormDinamic = { ...newFormDinamic, ...newFieldTemp };
             return field;
-        })
+        });
         setFormDynamic(newFormDinamic);
         return newFormDinamic;
     }
@@ -52,6 +58,10 @@ export const useCustomForm = (): [
         const name = evt.target.name;
         const currentValues: IDetailsField = formDynamic[name];
         const validations = validField(evt.target, currentValues);
+        if (!validations[0]) {
+            setFormValid(!!validations[0]); 
+        }
+        validForm();
         const newDataForm = {
             ...formDynamic,
             [name]: {
@@ -62,6 +72,32 @@ export const useCustomForm = (): [
             }
         }
         setFormDynamic(newDataForm as IFormDynamic);
+    }
+
+    const validForm = () => {
+        const validAll = [];
+        Object.entries(formDynamic).map(item => {
+            const [ key, value ] = item;
+            if (!value.valid) {
+                validAll.push(value.valid)
+            }
+            return item;
+        });
+        const validFormAll = validAll.length > 0;
+        setFormValid(!validFormAll);
+    }
+
+    const markAllTouch = () => {
+        const validAll = [];
+        Object.entries(formDynamic).map(item => {
+            const [ key, value ] = item;
+            value.touch = true;
+            if (!value.valid) {
+                validAll.push(value.valid)
+            }
+        });
+        const validFormAll = validAll.length > 0;
+        setFormValid(!validFormAll);
     }
 
     const validField = (taget: any, currentValues: any) => {
@@ -85,5 +121,5 @@ export const useCustomForm = (): [
         return values;
     }
 
-    return [ formDynamic, setFormDynamic, buildForm, handleChange, handleTouch, getValues ];
+    return [ formDynamic, setFormDynamic, formValid, buildForm, handleChange, handleTouch, markAllTouch, getValues ];
 }

@@ -4,9 +4,11 @@ import { ETypeField, EValidation } from "./field.enum";
 export interface IFormService {
     formDynamic: IFormDynamic;
     setFormDynamic: Dispatch<SetStateAction<IFormDynamic>>;
+    formValid: boolean;
     buildForm(fields: IFieldFormDynamic[]): IFormDynamic;
     handleChange(evt: ChangeEvent<HTMLInputElement>): void;
     handleTouch(evt: ChangeEvent<HTMLInputElement>): void;
+    markAllTouch(): void;
     getValues(): object;
 }
 
@@ -20,7 +22,7 @@ export interface IDetailsField {
     valid: boolean;
     touch: boolean;
     hidden: boolean;
-    error: {}
+    error: any;
 }
 
 export interface IFormProps {
